@@ -1,0 +1,1247 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幽霧森林的救贖 - 互動冒險</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .fog-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            overflow: hidden;
+        }
+        
+        .fog {
+            position: absolute;
+            width: 200%;
+            height: 100vh;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3CradialGradient id='a' cx='50%25' cy='50%25' r='50%25' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.1'/%3E%3Cstop offset='1' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3C/svg%3E");
+            background-size: cover;
+            opacity: 0.7;
+            animation: fogAnimation 60s linear infinite;
+        }
+        
+        .fog:nth-child(2) {
+            animation-duration: 120s;
+            opacity: 0.5;
+        }
+        
+        .fog:nth-child(3) {
+            animation-duration: 90s;
+            animation-direction: reverse;
+            opacity: 0.3;
+        }
+        
+        @keyframes fogAnimation {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        
+        .character-portrait {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            border: 3px solid #4f46e5;
+            box-shadow: 0 0 15px rgba(79, 70, 229, 0.6);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .character-portrait.active {
+            transform: scale(1.1);
+            border-color: #f59e0b;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
+        }
+        
+        .choice-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .choice-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5);
+        }
+        
+        .choice-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+        
+        .choice-btn:hover::after {
+            transform: translateX(100%);
+        }
+        
+        .scene-container {
+            min-height: 300px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+            transition: background-image 1s ease;
+        }
+        
+        .scene-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.8));
+        }
+        
+        .dialogue-box {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #4f46e5;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .dialogue-box.highlight {
+            border-color: #f59e0b;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+        }
+        
+        .character-name {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #4f46e5;
+            border-radius: 1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .typing-effect {
+            overflow: hidden;
+            border-right: 2px solid #f59e0b;
+            white-space: nowrap;
+            margin: 0;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #f59e0b }
+        }
+        
+        .status-effect {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            background: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+        }
+        
+        .ghost-spirit {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0;
+            filter: drop-shadow(0 0 10px rgba(79, 70, 229, 0.8));
+            z-index: 5;
+            transition: all 1s ease;
+        }
+        
+        .ghost-spirit.active {
+            opacity: 0.9;
+            animation: floatAnimation 8s ease-in-out infinite;
+        }
+        
+        @keyframes floatAnimation {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-15px) rotate(5deg);
+            }
+            50% {
+                transform: translateY(0) rotate(0deg);
+            }
+            75% {
+                transform: translateY(15px) rotate(-5deg);
+            }
+        }
+        
+        .progress-tracker {
+            position: relative;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+            transition: width 0.5s ease;
+        }
+        
+        .ending-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid #4f46e5;
+            border-radius: 1rem;
+            box-shadow: 0 0 30px rgba(79, 70, 229, 0.6);
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .ending-card.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        .memory-orb {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.8), rgba(79, 70, 229, 0.4));
+            box-shadow: 0 0 15px rgba(167, 139, 250, 0.6);
+            position: absolute;
+            opacity: 0;
+            transition: all 1s ease;
+        }
+        
+        .memory-orb.active {
+            opacity: 1;
+            animation: orbFloat 10s ease-in-out infinite;
+        }
+        
+        @keyframes orbFloat {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+                box-shadow: 0 0 15px rgba(167, 139, 250, 0.6);
+            }
+            50% {
+                transform: translateY(-20px) scale(1.1);
+                box-shadow: 0 0 25px rgba(167, 139, 250, 0.8);
+            }
+        }
+        
+        .character-bounce {
+            animation: bounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .character-wiggle {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        
+        .character-eyes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            animation: blink 4s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 95%, 100% { opacity: 1; }
+            97% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fog-container">
+        <div class="fog"></div>
+        <div class="fog"></div>
+        <div class="fog"></div>
+    </div>
+    
+    <div class="container mx-auto px-4 py-8 relative z-20">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">幽霧森林的救贖</h1>
+            <p class="text-lg text-indigo-200">踏上尋找救贖之道的可愛冒險</p>
+        </header>
+        
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-indigo-300">任務進度</span>
+                <span id="progress-text" class="text-sm font-medium text-indigo-300">第一幕：進入抉擇</span>
+            </div>
+            <div class="progress-tracker">
+                <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="md:col-span-2">
+                <div id="scene-container" class="scene-container rounded-xl h-64 md:h-96 bg-cover bg-center" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\'%3E%3Cdefs%3E%3ClinearGradient id=\'a\' x1=\'0%25\' y1=\'0%25\' x2=\'100%25\' y2=\'100%25\'%3E%3Cstop offset=\'0%25\' stop-color=\'%231e293b\'/%3E%3Cstop offset=\'100%25\' stop-color=\'%230f172a\'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23a)\'/%3E%3C/svg%3E')">
+                    <div class="scene-overlay p-4 flex flex-col justify-end h-full">
+                        <div id="ghost-spirit" class="ghost-spirit" style="top: 30%; left: 50%; transform: translate(-50%, -50%);">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+                                <g class="ghost-body">
+                                    <path d="M100 20C70 20 45 45 45 85v70c0 5 0 10 5 10s10-5 10-10v-10h10c5 0 5 5 5 10v10c0 5 5 10 10 10s10-5 10-10v-10c0-5 0-10 5-10h10v10c0 5 5 10 10 10s10-5 10-10v-10c0-5 0-10 5-10h10v10c0 5 5 10 10 10s10-5 10-10V85c0-40-25-65-55-65z" fill="#c7d2fe" opacity="0.9"/>
+                                    <circle cx="80" cy="70" r="10" fill="#4f46e5"/>
+                                    <circle cx="120" cy="70" r="10" fill="#4f46e5"/>
+                                    <path d="M75 100c10 10 40 10 50 0" stroke="#4f46e5" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                    <circle cx="80" cy="70" r="4" fill="#fff"/>
+                                    <circle cx="120" cy="70" r="4" fill="#fff"/>
+                                </g>
+                            </svg>
+                        </div>
+                        <div id="memory-orb-1" class="memory-orb" style="top: 30%; left: 20%;"></div>
+                        <div id="memory-orb-2" class="memory-orb" style="top: 40%; left: 60%;"></div>
+                        <div id="memory-orb-3" class="memory-orb" style="top: 20%; left: 40%;"></div>
+                    </div>
+                </div>
+                
+                <div id="dialogue-container" class="mt-4">
+                    <div class="dialogue-box p-4">
+                        <span class="character-name">旁白</span>
+                        <p class="text-lg">幽霧森林深處，霧氣翻湧，傳說中的「幽魂餃靈」甦醒。五位部落要角組成遠征小隊，踏上尋找救贖之道的危險之旅……</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-indigo-900 bg-opacity-30 rounded-xl p-5 border border-indigo-800">
+                <h3 class="font-bold text-lg text-indigo-300 mb-4">隊伍成員</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div id="character-1" class="character-portrait">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                                <circle cx="50" cy="50" r="45" fill="#f59e0b"/>
+                                <g class="character-eyes">
+                                    <circle cx="35" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="65" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="35" cy="40" r="4" fill="#000"/>
+                                    <circle cx="65" cy="40" r="4" fill="#000"/>
+                                    <circle cx="38" cy="37" r="2" fill="#fff"/>
+                                    <circle cx="68" cy="37" r="2" fill="#fff"/>
+                                </g>
+                                <path d="M35 65 Q50 75 65 65" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M25 25 Q50 40 75 25" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M20 20 Q25 15 30 20" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <path d="M70 20 Q75 15 80 20" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-yellow-500">阿餃大王</h4>
+                            <p class="text-sm text-indigo-200">果斷、冒險、主戰派</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div id="character-2" class="character-portrait">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                                <circle cx="50" cy="50" r="45" fill="#84cc16"/>
+                                <g class="character-eyes">
+                                    <circle cx="35" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="65" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="35" cy="40" r="4" fill="#000"/>
+                                    <circle cx="65" cy="40" r="4" fill="#000"/>
+                                    <circle cx="38" cy="37" r="2" fill="#fff"/>
+                                    <circle cx="68" cy="37" r="2" fill="#fff"/>
+                                </g>
+                                <path d="M40 65 Q50 70 60 65" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M25 25 Q50 40 75 25" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M30 15 Q35 10 40 15" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <path d="M60 15 Q65 10 70 15" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <circle cx="50" cy="50" r="35" fill="none" stroke="#65a30d" stroke-width="2" stroke-dasharray="5,5"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lime-500">阿木瓜</h4>
+                            <p class="text-sm text-indigo-200">慎重、穩定、策略派</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div id="character-3" class="character-portrait">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                                <circle cx="50" cy="50" r="45" fill="#8b5cf6"/>
+                                <g class="character-eyes">
+                                    <circle cx="35" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="65" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="35" cy="40" r="4" fill="#000"/>
+                                    <circle cx="65" cy="40" r="4" fill="#000"/>
+                                    <circle cx="38" cy="37" r="2" fill="#fff"/>
+                                    <circle cx="68" cy="37" r="2" fill="#fff"/>
+                                </g>
+                                <path d="M35 65 Q50 60 65 65" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M20 20 Q50 35 80 20" stroke="#000" stroke-width="3" fill="#8b5cf6" stroke-linecap="round"/>
+                                <path d="M30 30 L40 20 L50 30 L60 20 L70 30" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="2,4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-purple-500">阿希巴</h4>
+                            <p class="text-sm text-indigo-200">神秘、智慧、平衡派</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div id="character-4" class="character-portrait">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                                <circle cx="50" cy="50" r="45" fill="#60a5fa"/>
+                                <g class="character-eyes">
+                                    <circle cx="35" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="65" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="35" cy="40" r="4" fill="#000"/>
+                                    <circle cx="65" cy="40" r="4" fill="#000"/>
+                                    <circle cx="38" cy="37" r="2" fill="#fff"/>
+                                    <circle cx="68" cy="37" r="2" fill="#fff"/>
+                                </g>
+                                <path d="M30 65 Q50 75 70 65" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M15 30 Q50 10 85 30" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M20 60 Q30 50 40 60 Q50 50 60 60 Q70 50 80 60" stroke="#3b82f6" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <path d="M25 70 Q35 65 45 70 Q55 65 65 70 Q75 65 85 70" stroke="#3b82f6" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-blue-500">星潮海影</h4>
+                            <p class="text-sm text-indigo-200">謹慎、保守、撤退派</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div id="character-5" class="character-portrait">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                                <circle cx="50" cy="50" r="45" fill="#ec4899"/>
+                                <g class="character-eyes">
+                                    <circle cx="35" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="65" cy="40" r="8" fill="#fff"/>
+                                    <circle cx="35" cy="40" r="4" fill="#000"/>
+                                    <circle cx="65" cy="40" r="4" fill="#000"/>
+                                    <circle cx="38" cy="37" r="2" fill="#fff"/>
+                                    <circle cx="68" cy="37" r="2" fill="#fff"/>
+                                </g>
+                                <path d="M35 70 Q50 80 65 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M30 20 Q50 30 70 20" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                <path d="M25 25 L35 15 L45 25" stroke="#db2777" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <path d="M55 25 L65 15 L75 25" stroke="#db2777" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <path d="M40 75 Q50 85 60 75" stroke="#db2777" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-pink-500">阿瓦達</h4>
+                            <p class="text-sm text-indigo-200">感性、同理、和平派</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-indigo-800">
+                    <h3 class="font-bold text-lg text-indigo-300 mb-2">任務狀態</h3>
+                    <div class="text-sm text-indigo-200">
+                        <div class="flex justify-between mb-1">
+                            <span>記憶碎片</span>
+                            <span id="memory-count">0/5</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>隊伍士氣</span>
+                            <span id="morale-level">高</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>幽魂敵意</span>
+                            <span id="ghost-hostility">未知</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="choices-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <button class="choice-btn bg-indigo-700 hover:bg-indigo-600 text-white py-4 px-6 rounded-lg font-medium text-left" data-choice="A1">
+                <div class="flex items-center mb-2">
+                    <span class="inline-block bg-yellow-500 text-yellow-900 text-xs font-bold px-2 py-1 rounded mr-2">阿餃大王</span>
+                    <span class="text-lg font-bold">直入核心</span>
+                </div>
+                <p>瞬間移動，引隊直衝迷霧核心。「直搗核心，別被霧迷惑！」</p>
+            </button>
+            
+            <button class="choice-btn bg-indigo-700 hover:bg-indigo-600 text-white py-4 px-6 rounded-lg font-medium text-left" data-choice="B1">
+                <div class="flex items-center mb-2">
+                    <span class="inline-block bg-lime-500 text-lime-900 text-xs font-bold px-2 py-1 rounded mr-2">阿木瓜 & 阿希巴</span>
+                    <span class="text-lg font-bold">循跡探索</span>
+                </div>
+                <p>啟動果靈共鳴，搭配星湯盤導航，穩妥推進。「跟著我的共鳴走！」</p>
+            </button>
+        </div>
+        
+        <div id="ending-card" class="ending-card p-6 text-center hidden">
+            <h2 class="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">任務完成</h2>
+            <p id="ending-description" class="text-lg mb-6">你的選擇導致了...</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-indigo-900 bg-opacity-30 p-4 rounded-lg">
+                    <h3 class="font-bold text-indigo-300 mb-2">記憶保存</h3>
+                    <p id="memory-result" class="text-indigo-100">未知</p>
+                </div>
+                <div class="bg-indigo-900 bg-opacity-30 p-4 rounded-lg">
+                    <h3 class="font-bold text-indigo-300 mb-2">幽魂餃靈</h3>
+                    <p id="ghost-result" class="text-indigo-100">未知</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="font-bold text-indigo-300 mb-2">隊伍狀態</h3>
+                <p id="team-result" class="text-indigo-100">未知</p>
+            </div>
+            
+            <button id="restart-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 px-6 rounded-lg font-medium transition-all hover:shadow-lg hover:-translate-y-1">重新開始冒險</button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 遊戲狀態
+            const gameState = {
+                currentAct: 1,
+                currentScene: 1,
+                memories: 0,
+                morale: 'high', // high, medium, low
+                ghostHostility: 'unknown', // unknown, high, medium, low
+                choices: [],
+                activeCharacter: null
+            };
+            
+            // 場景背景
+            const sceneBackgrounds = {
+                act1: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23312e81'/%3E%3Cstop offset='100%25' stop-color='%231e1b4b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3C/svg%3E",
+                act2: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234c1d95'/%3E%3Cstop offset='100%25' stop-color='%232e1065'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3C/svg%3E",
+                act3: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23581c87'/%3E%3Cstop offset='100%25' stop-color='%233b0764'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3C/svg%3E"
+            };
+            
+            // DOM 元素
+            const sceneContainer = document.getElementById('scene-container');
+            const dialogueContainer = document.getElementById('dialogue-container');
+            const choicesContainer = document.getElementById('choices-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const memoryCount = document.getElementById('memory-count');
+            const moraleLevel = document.getElementById('morale-level');
+            const ghostHostility = document.getElementById('ghost-hostility');
+            const ghostSpirit = document.getElementById('ghost-spirit');
+            const endingCard = document.getElementById('ending-card');
+            const endingDescription = document.getElementById('ending-description');
+            const memoryResult = document.getElementById('memory-result');
+            const ghostResult = document.getElementById('ghost-result');
+            const teamResult = document.getElementById('team-result');
+            const restartBtn = document.getElementById('restart-btn');
+            const memoryOrbs = [
+                document.getElementById('memory-orb-1'),
+                document.getElementById('memory-orb-2'),
+                document.getElementById('memory-orb-3')
+            ];
+            
+            // 創建星星背景
+            function createStars() {
+                const starsContainer = document.createElement('div');
+                starsContainer.className = 'stars-container absolute inset-0 z-0';
+                sceneContainer.appendChild(starsContainer);
+                
+                for (let i = 0; i < 50; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.animationDelay = `${Math.random() * 2}s`;
+                    starsContainer.appendChild(star);
+                }
+            }
+            
+            // 添加角色動畫
+            function addCharacterAnimations() {
+                document.querySelectorAll('.character-portrait').forEach((portrait, index) => {
+                    if (index % 2 === 0) {
+                        portrait.classList.add('character-bounce');
+                    } else {
+                        portrait.classList.add('character-wiggle');
+                    }
+                });
+            }
+            
+            // 更新遊戲狀態顯示
+            function updateGameStatus() {
+                memoryCount.textContent = `${gameState.memories}/5`;
+                
+                switch(gameState.morale) {
+                    case 'high':
+                        moraleLevel.textContent = '高';
+                        moraleLevel.className = 'text-green-500';
+                        break;
+                    case 'medium':
+                        moraleLevel.textContent = '中';
+                        moraleLevel.className = 'text-yellow-500';
+                        break;
+                    case 'low':
+                        moraleLevel.textContent = '低';
+                        moraleLevel.className = 'text-red-500';
+                        break;
+                }
+                
+                switch(gameState.ghostHostility) {
+                    case 'unknown':
+                        ghostHostility.textContent = '未知';
+                        ghostHostility.className = 'text-indigo-200';
+                        break;
+                    case 'high':
+                        ghostHostility.textContent = '高';
+                        ghostHostility.className = 'text-red-500';
+                        break;
+                    case 'medium':
+                        ghostHostility.textContent = '中';
+                        ghostHostility.className = 'text-yellow-500';
+                        break;
+                    case 'low':
+                        ghostHostility.textContent = '低';
+                        ghostHostility.className = 'text-green-500';
+                        break;
+                }
+                
+                // 更新進度條
+                let progress = 0;
+                if (gameState.currentAct === 1) progress = 0;
+                else if (gameState.currentAct === 2) progress = 33;
+                else if (gameState.currentAct === 3 && gameState.currentScene === 1) progress = 66;
+                else if (gameState.currentAct === 3 && gameState.currentScene > 1) progress = 80;
+                
+                progressBar.style.width = `${progress}%`;
+                
+                // 更新場景背景
+                if (gameState.currentAct === 1) {
+                    sceneContainer.style.backgroundImage = `url('${sceneBackgrounds.act1}')`;
+                    progressText.textContent = '第一幕：進入抉擇';
+                } else if (gameState.currentAct === 2) {
+                    sceneContainer.style.backgroundImage = `url('${sceneBackgrounds.act2}')`;
+                    progressText.textContent = '第二幕：幽魂與心靈的試煉';
+                } else if (gameState.currentAct === 3) {
+                    sceneContainer.style.backgroundImage = `url('${sceneBackgrounds.act3}')`;
+                    progressText.textContent = '第三幕：衝突升級與命運抉擇';
+                }
+                
+                // 顯示幽魂
+                if (gameState.currentAct >= 2) {
+                    ghostSpirit.style.top = '30%';
+                    ghostSpirit.style.left = '50%';
+                    ghostSpirit.classList.add('active');
+                    
+                    // 根據敵意調整幽魂表情
+                    const ghostFace = ghostSpirit.querySelector('path[d*="M75 100"]');
+                    if (ghostFace) {
+                        if (gameState.ghostHostility === 'high') {
+                            ghostFace.setAttribute('d', 'M75 100c10 -5 40 -5 50 0');
+                        } else if (gameState.ghostHostility === 'low') {
+                            ghostFace.setAttribute('d', 'M75 100c10 15 40 15 50 0');
+                        } else {
+                            ghostFace.setAttribute('d', 'M75 100c10 10 40 10 50 0');
+                        }
+                    }
+                } else {
+                    ghostSpirit.classList.remove('active');
+                }
+                
+                // 顯示記憶球
+                if (gameState.currentAct === 2 && gameState.choices.includes('A2')) {
+                    memoryOrbs.forEach(orb => orb.classList.add('active'));
+                } else {
+                    memoryOrbs.forEach(orb => orb.classList.remove('active'));
+                }
+                
+                // 更新角色頭像
+                document.querySelectorAll('.character-portrait').forEach(portrait => {
+                    portrait.classList.remove('active');
+                });
+                
+                if (gameState.activeCharacter) {
+                    document.getElementById(`character-${gameState.activeCharacter}`).classList.add('active');
+                }
+            }
+            
+            // 顯示對話
+            function showDialogue(character, text, highlight = false) {
+                const dialogueBox = document.createElement('div');
+                dialogueBox.className = `dialogue-box p-4 mb-4 ${highlight ? 'highlight' : ''}`;
+                
+                let characterName = '旁白';
+                let characterClass = 'bg-indigo-600';
+                
+                switch(character) {
+                    case 'narrator':
+                        characterName = '旁白';
+                        characterClass = 'bg-indigo-600';
+                        break;
+                    case 'dumpling':
+                        characterName = '阿餃大王';
+                        characterClass = 'bg-yellow-500 text-yellow-900';
+                        gameState.activeCharacter = 1;
+                        break;
+                    case 'papaya':
+                        characterName = '阿木瓜';
+                        characterClass = 'bg-lime-500 text-lime-900';
+                        gameState.activeCharacter = 2;
+                        break;
+                    case 'shiba':
+                        characterName = '阿希巴';
+                        characterClass = 'bg-purple-500 text-purple-900';
+                        gameState.activeCharacter = 3;
+                        break;
+                    case 'tide':
+                        characterName = '星潮海影';
+                        characterClass = 'bg-blue-500 text-blue-900';
+                        gameState.activeCharacter = 4;
+                        break;
+                    case 'avada':
+                        characterName = '阿瓦達';
+                        characterClass = 'bg-pink-500 text-pink-900';
+                        gameState.activeCharacter = 5;
+                        break;
+                    case 'ghost':
+                        characterName = '幽魂餃靈';
+                        characterClass = 'bg-indigo-400 text-indigo-900';
+                        gameState.activeCharacter = null;
+                        break;
+                }
+                
+                dialogueBox.innerHTML = `
+                    <span class="character-name ${characterClass}">${characterName}</span>
+                    <p class="text-lg">${text}</p>
+                `;
+                
+                dialogueContainer.innerHTML = '';
+                dialogueContainer.appendChild(dialogueBox);
+                
+                updateGameStatus();
+            }
+            
+            // 顯示選項
+            function showChoices(choices) {
+                choicesContainer.innerHTML = '';
+                
+                choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.className = 'choice-btn bg-indigo-700 hover:bg-indigo-600 text-white py-4 px-6 rounded-lg font-medium text-left';
+                    button.dataset.choice = choice.id;
+                    
+                    let characterBadge = '';
+                    switch(choice.character) {
+                        case 'dumpling':
+                            characterBadge = '<span class="inline-block bg-yellow-500 text-yellow-900 text-xs font-bold px-2 py-1 rounded mr-2">阿餃大王</span>';
+                            break;
+                        case 'papaya':
+                            characterBadge = '<span class="inline-block bg-lime-500 text-lime-900 text-xs font-bold px-2 py-1 rounded mr-2">阿木瓜</span>';
+                            break;
+                        case 'shiba':
+                            characterBadge = '<span class="inline-block bg-purple-500 text-purple-900 text-xs font-bold px-2 py-1 rounded mr-2">阿希巴</span>';
+                            break;
+                        case 'tide':
+                            characterBadge = '<span class="inline-block bg-blue-500 text-blue-900 text-xs font-bold px-2 py-1 rounded mr-2">星潮海影</span>';
+                            break;
+                        case 'avada':
+                            characterBadge = '<span class="inline-block bg-pink-500 text-pink-900 text-xs font-bold px-2 py-1 rounded mr-2">阿瓦達</span>';
+                            break;
+                        case 'papaya_shiba':
+                            characterBadge = '<span class="inline-block bg-lime-500 text-lime-900 text-xs font-bold px-2 py-1 rounded mr-2">阿木瓜 & 阿希巴</span>';
+                            break;
+                        case 'avada_papaya':
+                            characterBadge = '<span class="inline-block bg-pink-500 text-pink-900 text-xs font-bold px-2 py-1 rounded mr-2">阿瓦達 & 阿木瓜</span>';
+                            break;
+                    }
+                    
+                    button.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            ${characterBadge}
+                            <span class="text-lg font-bold">${choice.title}</span>
+                        </div>
+                        <p>${choice.description}</p>
+                    `;
+                    
+                    button.addEventListener('click', () => {
+                        handleChoice(choice.id);
+                    });
+                    
+                    choicesContainer.appendChild(button);
+                });
+            }
+            
+            // 處理選擇
+            function handleChoice(choiceId) {
+                gameState.choices.push(choiceId);
+                
+                switch(choiceId) {
+                    case 'A1': // 直入核心
+                        showDialogue('dumpling', '直搗核心，別被霧迷惑！', true);
+                        setTimeout(() => {
+                            showDialogue('narrator', '阿餃大王帶領隊伍直衝迷霧核心，霧氣越來越濃，視線幾乎完全被遮蔽...');
+                            setTimeout(() => {
+                                showDialogue('dumpling', '（這是捷徑，但危險難測。）');
+                                setTimeout(() => {
+                                    gameState.currentAct = 2;
+                                    gameState.morale = 'medium';
+                                    updateGameStatus();
+                                    startAct2();
+                                }, 2000);
+                            }, 2000);
+                        }, 2000);
+                        break;
+                        
+                    case 'B1': // 循跡探索
+                        showDialogue('papaya', '跟著我的共鳴走！', true);
+                        setTimeout(() => {
+                            showDialogue('shiba', '我的星湯盤能指引方向，穩妥前進。');
+                            setTimeout(() => {
+                                showDialogue('narrator', '阿木瓜和阿希巴合作，小隊緩慢但安全地穿過迷霧...');
+                                setTimeout(() => {
+                                    gameState.currentAct = 2;
+                                    gameState.memories = 1;
+                                    updateGameStatus();
+                                    startAct2();
+                                }, 2000);
+                            }, 2000);
+                        }, 2000);
+                        break;
+                        
+                    case 'A2': // 共享記憶
+                        showDialogue('avada', '我們的記憶能打動它！', true);
+                        setTimeout(() => {
+                            showDialogue('papaya', '我來增幅共鳴，讓記憶更強烈！');
+                            setTimeout(() => {
+                                showDialogue('ghost', '...你們的記憶...有趣...');
+                                setTimeout(() => {
+                                    showDialogue('narrator', '幽魂餃靈被記憶感動，敵意降低了...');
+                                    setTimeout(() => {
+                                        gameState.currentAct = 3;
+                                        gameState.ghostHostility = 'low';
+                                        gameState.memories += 2;
+                                        updateGameStatus();
+                                        startAct3();
+                                    }, 2000);
+                                }, 2000);
+                            }, 2000);
+                        }, 2000);
+                        break;
+                        
+                    case 'B2': // 力量驅逐
+                        showDialogue('dumpling', '邪靈滾開！', true);
+                        setTimeout(() => {
+                            showDialogue('narrator', '阿餃大王變身煎餃型態，發動強力攻擊...');
+                            setTimeout(() => {
+                                showDialogue('ghost', '愚蠢的生物...你的力量無法傷害我...');
+                                setTimeout(() => {
+                                    showDialogue('narrator', '幽魂餃靈的敵意增加了！');
+                                    setTimeout(() => {
+                                        gameState.currentAct = 3;
+                                        gameState.ghostHostility = 'high';
+                                        gameState.morale = 'low';
+                                        updateGameStatus();
+                                        startAct3();
+                                    }, 2000);
+                                }, 2000);
+                            }, 2000);
+                        }, 2000);
+                        break;
+                        
+                    case 'A3': // 阿餃大王犧牲
+                        showDialogue('dumpling', '我留下，你們走！', true);
+                        setTimeout(() => {
+                            showDialogue('papaya', '不！一定有其他方法！');
+                            setTimeout(() => {
+                                showDialogue('ghost', '勇敢的選擇...我接受你的犧牲...');
+                                setTimeout(() => {
+                                    showEnding('sacrifice');
+                                }, 2000);
+                            }, 2000);
+                        }, 2000);
+                        break;
+                        
+                    case 'B3': // 阿希巴封印
+                        showDialogue('shiba', '星盤能封住它，別犧牲！', true);
+                        setTimeout(() => {
+                            showDialogue('narrator', '阿希巴啟動星湯盤，神秘的能量開始圍繞幽魂餃靈...');
+                            
+                            if (gameState.ghostHostility === 'low') {
+                                setTimeout(() => {
+                                    showDialogue('ghost', '我...理解你們的意圖...我願意被封印...');
+                                    setTimeout(() => {
+                                        showEnding('peaceful_seal');
+                                    }, 2000);
+                                }, 2000);
+                            } else {
+                                setTimeout(() => {
+                                    showDialogue('ghost', '你們的封印...無法...控制我！');
+                                    setTimeout(() => {
+                                        showDialogue('narrator', '封印儀式失敗了！幽魂餃靈的力量更強了！');
+                                        setTimeout(() => {
+                                            showDialogue('shiba', '我們需要更多力量！阿木瓜，幫我！');
+                                            setTimeout(() => {
+                                                showDialogue('papaya', '我們能撐住！');
+                                                setTimeout(() => {
+                                                    showEnding('failed_seal');
+                                                }, 2000);
+                                            }, 2000);
+                                        }, 2000);
+                                    }, 2000);
+                                }, 2000);
+                            }
+                        }, 2000);
+                        break;
+                        
+                    case 'C3': // 立即撤退
+                        showDialogue('tide', '撤退，保存實力！', true);
+                        setTimeout(() => {
+                            showDialogue('narrator', '星潮海影組織隊伍撤退隊形，試圖逃離霧林...');
+                            setTimeout(() => {
+                                showDialogue('ghost', '逃避...無用...我會追隨...');
+                                setTimeout(() => {
+                                    showDialogue('narrator', '濃霧加劇，隊伍陷入更深的迷霧中...');
+                                    setTimeout(() => {
+                                        showDialogue('papaya', '阿瓦達，幫我一起清除霧氣！');
+                                        setTimeout(() => {
+                                            showDialogue('avada', '我們能撐住！');
+                                            setTimeout(() => {
+                                                showEnding('retreat');
+                                            }, 2000);
+                                        }, 2000);
+                                    }, 2000);
+                                }, 2000);
+                            }, 2000);
+                        }, 2000);
+                        break;
+                        
+                    case 'A4': // 保留記憶
+                        showDialogue('dumpling', '記憶是我們的根！', true);
+                        setTimeout(() => {
+                            showDialogue('narrator', '阿餃大王堅持保留所有記憶，即使這意味著更大的風險...');
+                            setTimeout(() => {
+                                if (gameState.ghostHostility === 'low') {
+                                    showEnding('keep_memory_peaceful');
+                                } else {
+                                    showEnding('keep_memory_conflict');
+                                }
+                            }, 2000);
+                        }, 2000);
+                        break;
+                        
+                    case 'B4': // 犧牲記憶
+                        showDialogue('shiba', '忘卻換和平，值得！', true);
+                        setTimeout(() => {
+                            showDialogue('narrator', '阿希巴提議犧牲部分記憶，換取與幽魂餃靈的和平...');
+                            setTimeout(() => {
+                                showEnding('sacrifice_memory');
+                            }, 2000);
+                        }, 2000);
+                        break;
+                }
+                
+                // 隱藏選項
+                choicesContainer.innerHTML = '';
+            }
+            
+            // 開始第二幕
+            function startAct2() {
+                showDialogue('narrator', '穿過迷霧，小隊來到一片空地，幽魂餃靈浮現在眼前...');
+                
+                setTimeout(() => {
+                    showDialogue('ghost', '闖入者...你們為何...打擾我的安寧...');
+                    
+                    setTimeout(() => {
+                        showDialogue('ghost', '證明...你們的心意...否則...無法離開...');
+                        
+                        setTimeout(() => {
+                            const choices = [
+                                {
+                                    id: 'A2',
+                                    character: 'avada_papaya',
+                                    title: '共享記憶',
+                                    description: '阿瓦達釋放療癒記憶，阿木瓜共鳴增幅，感動靈魂。「我們的記憶能打動它！」'
+                                },
+                                {
+                                    id: 'B2',
+                                    character: 'dumpling',
+                                    title: '力量驅逐',
+                                    description: '變身煎餃型態，單人發動攻擊，意圖驅逐幽魂。「邪靈滾開！」'
+                                }
+                            ];
+                            
+                            showChoices(choices);
+                        }, 2000);
+                    }, 2000);
+                }, 2000);
+            }
+            
+            // 開始第三幕
+            function startAct3() {
+                showDialogue('narrator', '幽魂餃靈的態度已經確立，但它提出了一個要求...');
+                
+                setTimeout(() => {
+                    showDialogue('ghost', '我需要...一個錨點...留在這個世界...');
+                    
+                    setTimeout(() => {
+                        const choices = [
+                            {
+                                id: 'A3',
+                                character: 'dumpling',
+                                title: '犧牲自己',
+                                description: '站出自願留守，換取全隊撤退。「我留下，你們走！」'
+                            },
+                            {
+                                id: 'B3',
+                                character: 'shiba',
+                                title: '使用星湯盤封印',
+                                description: '啟動封印儀式，試圖封住幽魂。「星盤能封住它，別犧牲！」'
+                            },
+                            {
+                                id: 'C3',
+                                character: 'tide',
+                                title: '立即撤退',
+                                description: '召集撤退隊形，逃出霧林。「撤退，保存實力！」'
+                            }
+                        ];
+                        
+                        showChoices(choices);
+                    }, 2000);
+                }, 2000);
+            }
+            
+            // 顯示結局
+            function showEnding(endingType) {
+                // 最後的記憶抉擇
+                if (endingType !== 'sacrifice_memory' && endingType !== 'keep_memory_peaceful' && endingType !== 'keep_memory_conflict') {
+                    showDialogue('narrator', '面對最後的抉擇：是否保留記憶？');
+                    
+                    setTimeout(() => {
+                        const choices = [
+                            {
+                                id: 'A4',
+                                character: 'dumpling',
+                                title: '保留記憶',
+                                description: '堅持保留所有記憶。「記憶是我們的根！」'
+                            },
+                            {
+                                id: 'B4',
+                                character: 'shiba',
+                                title: '犧牲記憶',
+                                description: '支持犧牲部分記憶換取和平。「忘卻換和平，值得！」'
+                            }
+                        ];
+                        
+                        showChoices(choices);
+                    }, 2000);
+                    
+                    return;
+                }
+                
+                // 隱藏選項和對話
+                choicesContainer.innerHTML = '';
+                dialogueContainer.innerHTML = '';
+                
+                // 顯示結局卡
+                endingCard.classList.remove('hidden');
+                setTimeout(() => {
+                    endingCard.classList.add('active');
+                }, 100);
+                
+                // 根據結局類型設置結局內容
+                switch(endingType) {
+                    case 'sacrifice':
+                        endingDescription.textContent = '阿餃大王的犧牲拯救了隊伍，但代價沉重...';
+                        memoryResult.textContent = '記憶完整保存，但失去了阿餃大王的實體存在';
+                        ghostResult.textContent = '幽魂餃靈與阿餃大王融合，獲得了新的理解';
+                        teamResult.textContent = '隊伍安全撤離，但失去了他們的領袖';
+                        break;
+                        
+                    case 'peaceful_seal':
+                        endingDescription.textContent = '阿希巴成功封印了幽魂餃靈，和平解決了危機';
+                        memoryResult.textContent = '記憶被犧牲，但換來了長久的和平';
+                        ghostResult.textContent = '幽魂餃靈被和平封印，不再威脅部落';
+                        teamResult.textContent = '全隊平安返回，帶著新的智慧和理解';
+                        break;
+                        
+                    case 'failed_seal':
+                        endingDescription.textContent = '封印失敗，但隊伍團結一心，共同抵抗';
+                        memoryResult.textContent = '記憶保留，但被幽魂餃靈的力量扭曲';
+                        ghostResult.textContent = '幽魂餃靈變得更強，但也獲得了部分人性';
+                        teamResult.textContent = '隊伍受傷但存活，與幽魂達成了脆弱的平衡';
+                        break;
+                        
+                    case 'retreat':
+                        endingDescription.textContent = '撤退過程中，隊伍面臨更大的危險，但最終逃脫';
+                        memoryResult.textContent = '記憶部分丟失，迷霧帶走了一些過去';
+                        ghostResult.textContent = '幽魂餃靈仍在森林中遊蕩，等待下一個闖入者';
+                        teamResult.textContent = '隊伍安全但受創，需要時間恢復';
+                        break;
+                        
+                    case 'keep_memory_peaceful':
+                        endingDescription.textContent = '保留記憶的決定與幽魂餃靈的理解相結合，創造了和諧';
+                        memoryResult.textContent = '所有記憶完整保存，成為部落的寶貴財富';
+                        ghostResult.textContent = '幽魂餃靈成為部落的守護者，保護森林和記憶';
+                        teamResult.textContent = '隊伍凱旋而歸，被視為英雄和智者';
+                        break;
+                        
+                    case 'keep_memory_conflict':
+                        endingDescription.textContent = '堅持保留記憶引發了最後的衝突，但隊伍堅持下來';
+                        memoryResult.textContent = '記憶保留但受損，需要時間修復';
+                        ghostResult.textContent = '幽魂餃靈被迫退卻，但誓言會回來';
+                        teamResult.textContent = '隊伍傷痕累累但團結，共同守護著他們的記憶';
+                        break;
+                        
+                    case 'sacrifice_memory':
+                        endingDescription.textContent = '犧牲部分記憶換來了和平，但代價是否值得？';
+                        memoryResult.textContent = '關鍵記憶被犧牲，部落失去了部分歷史';
+                        ghostResult.textContent = '幽魂餃靈吸收了記憶，變得更加平和';
+                        teamResult.textContent = '隊伍平安返回，但對失去的記憶感到迷茫';
+                        break;
+                }
+                
+                // 更新進度條為100%
+                progressBar.style.width = '100%';
+                progressText.textContent = '任務完成';
+            }
+            
+            // 重新開始遊戲
+            restartBtn.addEventListener('click', function() {
+                // 重置遊戲狀態
+                gameState.currentAct = 1;
+                gameState.currentScene = 1;
+                gameState.memories = 0;
+                gameState.morale = 'high';
+                gameState.ghostHostility = 'unknown';
+                gameState.choices = [];
+                gameState.activeCharacter = null;
+                
+                // 隱藏結局卡
+                endingCard.classList.remove('active');
+                setTimeout(() => {
+                    endingCard.classList.add('hidden');
+                }, 500);
+                
+                // 重置UI
+                updateGameStatus();
+                
+                // 顯示初始對話和選項
+                showDialogue('narrator', '幽霧森林深處，霧氣翻湧，傳說中的「幽魂餃靈」甦醒。五位部落要角組成遠征小隊，踏上尋找救贖之道的危險之旅……');
+                
+                setTimeout(() => {
+                    showDialogue('narrator', '濃霧瀰漫，隊伍停步不前。前方迷霧未知，行進需做出抉擇。');
+                    
+                    setTimeout(() => {
+                        const choices = [
+                            {
+                                id: 'A1',
+                                character: 'dumpling',
+                                title: '直入核心',
+                                description: '瞬間移動，引隊直衝迷霧核心。「直搗核心，別被霧迷惑！」'
+                            },
+                            {
+                                id: 'B1',
+                                character: 'papaya_shiba',
+                                title: '循跡探索',
+                                description: '啟動果靈共鳴，搭配星湯盤導航，穩妥推進。「跟著我的共鳴走！」'
+                            }
+                        ];
+                        
+                        showChoices(choices);
+                    }, 2000);
+                }, 2000);
+            });
+            
+            // 創建星星背景
+            createStars();
+            
+            // 添加角色動畫
+            addCharacterAnimations();
+            
+            // 初始化遊戲
+            updateGameStatus();
+            
+            // 顯示初始選項
+            setTimeout(() => {
+                showDialogue('narrator', '濃霧瀰漫，隊伍停步不前。前方迷霧未知，行進需做出抉擇。');
+                
+                setTimeout(() => {
+                    const choices = [
+                        {
+                            id: 'A1',
+                            character: 'dumpling',
+                            title: '直入核心',
+                            description: '瞬間移動，引隊直衝迷霧核心。「直搗核心，別被霧迷惑！」'
+                        },
+                        {
+                            id: 'B1',
+                            character: 'papaya_shiba',
+                            title: '循跡探索',
+                            description: '啟動果靈共鳴，搭配星湯盤導航，穩妥推進。「跟著我的共鳴走！」'
+                        }
+                    ];
+                    
+                    showChoices(choices);
+                }, 2000);
+            }, 2000);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9544c2626161f1e4',t:'MTc1MDY4OTgyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
